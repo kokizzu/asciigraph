@@ -250,22 +250,10 @@ func parseColors(colors string) ([]asciigraph.AnsiColor, bool) {
 	return parsedColors, true
 }
 
-// clearPreviousGraph clears the previous graph in realtime mode
-// by moving cursor up and clearing the lines
+// clearPreviousGraph clears the previous graph in realtime mode by moving the
+// cursor up over the last graph and clearing to the end of the screen.
 func clearPreviousGraph() {
-	if lastGraphLines > 0 {
-		// Move cursor up by lastGraphLines
-		fmt.Printf("\033[%dA", lastGraphLines)
-		// Clear each line
-		for i := 0; i < lastGraphLines; i++ {
-			fmt.Print("\033[2K\r")
-			if i < lastGraphLines-1 {
-				fmt.Print("\033[B") // Move down one line
-			}
-		}
-		// Move cursor back to start position
-		fmt.Printf("\033[%dA", lastGraphLines)
-	}
+	asciigraph.ClearLines(lastGraphLines)
 }
 
 func parseColor(color string) (asciigraph.AnsiColor, bool) {
