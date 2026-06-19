@@ -1,8 +1,10 @@
 package asciigraph
 
 import (
+	"bytes"
 	"fmt"
 	"math"
+	"os"
 	"strings"
 	"testing"
 )
@@ -830,6 +832,52 @@ func TestXAxis(t *testing.T) {
 			actual := PlotMany(c.data, c.opts...)
 			if actual != expected {
 				t.Errorf("expected:\n%s\n\ngot:\n%s", expected, actual)
+			}
+		})
+	}
+}
+
+// captureStdout redirects os.Stdout for the duration of f and returns whatever
+// was written to it.
+func captureStdout(t *testing.T, f func()) string {
+	t.Helper()
+	old := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("os.Pipe() failed: %v", err)
+	}
+	os.Stdout = w
+	defer func() { os.Stdout = old }()
+
+	f()
+
+	w.Close()
+	var buf bytes.Buffer
+	if _, err := buf.ReadFrom(r); err != nil {
+		t.Fatalf("reading captured stdout failed: %v", err)
+	}
+	return buf.String()
+}
+
+func TestClearLines(t *testing.T) {
+	cases := []struct {
+		n        int
+		expected string
+	}{
+		{0, ""},
+		{-1, ""},
+		{1, "\033[1A\033[J"},
+		{5, "\033[5A\033[J"},
+		{100, "\033[100A\033[J"},
+	}
+
+	for i, c := range cases {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			got := captureStdout(t, func() {
+				ClearLines(c.n)
+			})
+			if got != c.expected {
+				t.Errorf("ClearLines(%d) = %q, expected %q", c.n, got, c.expected)
 			}
 		})
 	}

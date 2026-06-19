@@ -37,6 +37,7 @@ var (
 	xAxisMin           = math.NaN()
 	xAxisMax           = math.NaN()
 	xAxisTicks         int
+	lastGraphLines     int // Track last graph height for clearing in realtime mode
 )
 
 func main() {
@@ -186,8 +187,12 @@ func main() {
 					}
 				}
 				plot := asciigraph.PlotMany(seriesCopy, opts...)
-				asciigraph.Clear()
+				// Clear previous graph in realtime mode
+				clearPreviousGraph()
 				fmt.Println(plot)
+				// Record the number of lines for next clearing
+				lines := strings.Split(plot, "\n")
+				lastGraphLines = len(lines)
 				nextFlushTime = time.Now().Add(flushInterval)
 			}
 		}
@@ -243,6 +248,12 @@ func parseColors(colors string) ([]asciigraph.AnsiColor, bool) {
 	}
 
 	return parsedColors, true
+}
+
+// clearPreviousGraph clears the previous graph in realtime mode by moving the
+// cursor up over the last graph and clearing to the end of the screen.
+func clearPreviousGraph() {
+	asciigraph.ClearLines(lastGraphLines)
 }
 
 func parseColor(color string) (asciigraph.AnsiColor, bool) {
