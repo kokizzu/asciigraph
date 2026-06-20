@@ -372,17 +372,18 @@ func ansiToRGB(c AnsiColor) (r, g, b uint8) {
 	}
 }
 
-// rgbToAnsi256 maps an RGB triple to the nearest 8-bit ANSI color index,
-// using the grayscale ramp for near-gray colors and the 6x6x6 cube otherwise.
+// rgbToAnsi256 maps an RGB triple to an 8-bit ANSI color index: exact grays use
+// the nearest step on the grayscale ramp, all other colors the 6x6x6 cube.
 func rgbToAnsi256(r, g, b uint8) AnsiColor {
 	if r == g && g == b {
 		if r < 8 {
 			return 16
 		}
-		if r >= 248 {
+		step := (int(r) - 8 + 5) / 10 // round (r-8)/10 to the nearest ramp step
+		if step > 23 {
 			return 231
 		}
-		return AnsiColor(232 + (int(r)-8)/10)
+		return AnsiColor(232 + step)
 	}
 	cube := func(v uint8) int {
 		if v < 48 {

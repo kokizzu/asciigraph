@@ -931,4 +931,8 @@ func TestColorConversion(t *testing.T) {
 	if got := rgbToAnsi256(248, 248, 248); got == Default {
 		t.Errorf("rgbToAnsi256(248,248,248) overflowed to Default")
 	}
+	// The gray ramp rounds to the nearest step: 17 -> 233 (gray 18), not 232.
+	if got := rgbToAnsi256(17, 17, 17); got != 233 {
+		t.Errorf("rgbToAnsi256(17,17,17) = %d, want 233", got)
+	}
 }
