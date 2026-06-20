@@ -882,3 +882,40 @@ func TestClearLines(t *testing.T) {
 		})
 	}
 }
+
+func TestGradientColor(t *testing.T) {
+	stops := []AnsiColor{10, 20, 30}
+	cases := []struct {
+		stops       []AnsiColor
+		v, min, max float64
+		want        AnsiColor
+	}{
+		{nil, 5, 0, 10, Default},              // no stops
+		{[]AnsiColor{Red}, 5, 0, 10, Red},     // single stop
+		{stops, 5, 5, 5, 10},                  // max <= min -> first stop
+		{stops, 0, 0, 10, 10},                 // low end
+		{stops, 10, 0, 10, 30},                // high end
+		{stops, 5, 0, 10, 20},                 // midpoint -> middle stop
+		{stops, -5, 0, 10, 10},                // clamp below
+		{stops, 15, 0, 10, 30},                // clamp above
+		{[]AnsiColor{Blue, Red}, 1, 0, 2, 90}, // midpoint blends in RGB space
+	}
+
+	for i, c := range cases {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			if got := gradientColor(c.stops, c.v, c.min, c.max); got != c.want {
+				t.Errorf("gradientColor(%v, %v, %v, %v) = %d, want %d", c.stops, c.v, c.min, c.max, got, c.want)
+			}
+		})
+	}
+}
+
+func TestSeriesColorGradient(t *testing.T) {
+	actual := PlotMany([][]float64{{1, 2, 3}}, SeriesColorGradient(Blue, Red))
+	// Top is the last stop (red), bottom the first (blue), and the midpoint is
+	// blended between them in RGB space rather than snapping to a stop.
+	expected := " 3.00 ┤ \x1b[91m╭\x1b[0m\n 2.00 ┤\x1b[38;5;90m╭╯\x1b[0m\n 1.00 ┼\x1b[94m╯\x1b[0m"
+	if actual != expected {
+		t.Errorf("expected:\n%q\n\ngot:\n%q", expected, actual)
+	}
+}

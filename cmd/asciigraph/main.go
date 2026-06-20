@@ -25,6 +25,7 @@ var (
 	realTimeDataBuffer int
 	fps                float64 = 24
 	seriesColors       []asciigraph.AnsiColor
+	gradientColors     []asciigraph.AnsiColor
 	seriesLegends      []string
 	captionColor       asciigraph.AnsiColor
 	axisColor          asciigraph.AnsiColor
@@ -61,6 +62,19 @@ func main() {
 			return errors.New("unrecognized color, check available color names at https://www.w3.org/TR/SVG11/types.html#ColorKeywords")
 		} else {
 			seriesColors = colors
+			return nil
+		}
+	})
+
+	flag.Func("g", "`gradient` palette coloring points by value: \"spectrum\" for the built-in heatmap, or comma-separated color stops (low to high)", func(str string) error {
+		if strings.EqualFold(strings.TrimSpace(str), "spectrum") {
+			gradientColors = asciigraph.HeatmapSpectrum
+			return nil
+		}
+		if colors, ok := parseColors(str); !ok {
+			return errors.New("unrecognized color, check available color names at https://www.w3.org/TR/SVG11/types.html#ColorKeywords")
+		} else {
+			gradientColors = colors
 			return nil
 		}
 	})
@@ -170,6 +184,7 @@ func main() {
 					asciigraph.Precision(precision),
 					asciigraph.Caption(caption),
 					asciigraph.SeriesColors(seriesColors...),
+					asciigraph.SeriesColorGradient(gradientColors...),
 					asciigraph.SeriesLegends(seriesLegends...),
 					asciigraph.CaptionColor(captionColor),
 					asciigraph.AxisColor(axisColor),
@@ -213,6 +228,7 @@ func main() {
 			asciigraph.Precision(precision),
 			asciigraph.Caption(caption),
 			asciigraph.SeriesColors(seriesColors...),
+			asciigraph.SeriesColorGradient(gradientColors...),
 			asciigraph.SeriesLegends(seriesLegends...),
 			asciigraph.CaptionColor(captionColor),
 			asciigraph.AxisColor(axisColor),
