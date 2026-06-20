@@ -935,4 +935,16 @@ func TestColorConversion(t *testing.T) {
 	if got := rgbToAnsi256(17, 17, 17); got != 233 {
 		t.Errorf("rgbToAnsi256(17,17,17) = %d, want 233", got)
 	}
+	// A non-gray blend must never return the Black sentinel (188), which String
+	// would render as black instead of the intended light gray.
+	if got := rgbToAnsi256(214, 215, 215); got == Black {
+		t.Errorf("rgbToAnsi256(214,215,215) returned the Black sentinel")
+	}
+	if got := gradientColor([]AnsiColor{152, 224}, 49, 0, 100); got == Black {
+		t.Errorf("gradientColor blend returned the Black sentinel")
+	}
+	// A NaN value must not panic; it falls back to the first stop.
+	if got := gradientColor([]AnsiColor{Blue, Red}, math.NaN(), 0, 10); got != Blue {
+		t.Errorf("gradientColor(NaN) = %d, want Blue", got)
+	}
 }

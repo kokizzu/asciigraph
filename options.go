@@ -185,8 +185,9 @@ func SeriesColors(ac ...AnsiColor) Option {
 // series and takes precedence over SeriesColors. Passing no stops disables it.
 // Use the built-in HeatmapSpectrum for a ready-made cool-to-warm palette.
 func SeriesColorGradient(stops ...AnsiColor) Option {
+	gradient := append([]AnsiColor(nil), stops...)
 	return optionFunc(func(c *config) {
-		c.Gradient = stops
+		c.Gradient = gradient
 	})
 }
 

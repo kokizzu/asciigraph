@@ -1,6 +1,9 @@
 package asciigraph
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 type AnsiColor byte
 
@@ -315,6 +318,9 @@ func gradientColor(stops []AnsiColor, v, min, max float64) AnsiColor {
 		return stops[0]
 	}
 	t := (v - min) / (max - min)
+	if math.IsNaN(t) {
+		return stops[0]
+	}
 	if t < 0 {
 		t = 0
 	} else if t > 1 {
@@ -394,7 +400,13 @@ func rgbToAnsi256(r, g, b uint8) AnsiColor {
 		}
 		return (int(v) - 35) / 40
 	}
-	return AnsiColor(16 + 36*cube(r) + 6*cube(g) + cube(b))
+	idx := AnsiColor(16 + 36*cube(r) + 6*cube(g) + cube(b))
+	if idx == Black {
+		// 188 is reused as the Black sentinel, so a near-white blend that lands
+		// here would render as black; emit the matching gray ramp step instead.
+		return 253
+	}
+	return idx
 }
 
 func (c AnsiColor) String() string {
