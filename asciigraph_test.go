@@ -919,3 +919,16 @@ func TestSeriesColorGradient(t *testing.T) {
 		t.Errorf("expected:\n%q\n\ngot:\n%q", expected, actual)
 	}
 }
+
+func TestColorConversion(t *testing.T) {
+	// Black is a dummy index (188) that must normalize to true black,
+	// matching AnsiColor.String, otherwise gradients through black are wrong.
+	if r, g, b := ansiToRGB(Black); r != 0 || g != 0 || b != 0 {
+		t.Errorf("ansiToRGB(Black) = (%d,%d,%d), want (0,0,0)", r, g, b)
+	}
+	// A bright gray must not overflow the AnsiColor byte (which would wrap to
+	// Default and reset formatting).
+	if got := rgbToAnsi256(248, 248, 248); got == Default {
+		t.Errorf("rgbToAnsi256(248,248,248) overflowed to Default")
+	}
+}

@@ -348,6 +348,9 @@ var ansi16 = [16][3]uint8{
 
 // ansiToRGB returns the RGB components of an 8-bit ANSI color index.
 func ansiToRGB(c AnsiColor) (r, g, b uint8) {
+	if c == Black {
+		return 0, 0, 0
+	}
 	switch {
 	case c < 16:
 		v := ansi16[c]
@@ -376,7 +379,7 @@ func rgbToAnsi256(r, g, b uint8) AnsiColor {
 		if r < 8 {
 			return 16
 		}
-		if r > 248 {
+		if r >= 248 {
 			return 231
 		}
 		return AnsiColor(232 + (int(r)-8)/10)
