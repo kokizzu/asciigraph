@@ -935,6 +935,14 @@ func TestColorConversion(t *testing.T) {
 	if got := rgbToAnsi256(17, 17, 17); got != 233 {
 		t.Errorf("rgbToAnsi256(17,17,17) = %d, want 233", got)
 	}
+	// Grays brighter than the ramp pick the nearer of gray 238 (255) or white
+	// (231): 244 is closer to gray 238, 250 is closer to white.
+	if got := rgbToAnsi256(244, 244, 244); got != 255 {
+		t.Errorf("rgbToAnsi256(244,244,244) = %d, want 255", got)
+	}
+	if got := rgbToAnsi256(250, 250, 250); got != 231 {
+		t.Errorf("rgbToAnsi256(250,250,250) = %d, want 231", got)
+	}
 	// A non-gray blend must never return the Black sentinel (188), which String
 	// would render as black instead of the intended light gray.
 	if got := rgbToAnsi256(214, 215, 215); got == Black {

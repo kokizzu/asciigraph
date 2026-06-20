@@ -387,7 +387,12 @@ func rgbToAnsi256(r, g, b uint8) AnsiColor {
 		}
 		step := (int(r) - 8 + 5) / 10 // round (r-8)/10 to the nearest ramp step
 		if step > 23 {
-			return 231
+			// Brighter than the ramp's max (gray 238); pick whichever of that
+			// step or cube white (255) is nearer.
+			if r > 246 {
+				return 231
+			}
+			return 255
 		}
 		return AnsiColor(232 + step)
 	}
