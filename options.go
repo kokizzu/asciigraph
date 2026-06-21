@@ -66,6 +66,10 @@ type config struct {
 	LabelColor             AnsiColor
 	SeriesColors           []AnsiColor
 	Gradient               []AnsiColor
+	AboveThreshold         *float64
+	AboveColor             AnsiColor
+	BelowThreshold         *float64
+	BelowColor             AnsiColor
 	SeriesLegends          []string
 	LineEnding             string
 	SeriesChars            []CharSet
@@ -189,6 +193,27 @@ func SeriesColorGradient(stops ...AnsiColor) Option {
 	gradient := append([]AnsiColor(nil), stops...)
 	return optionFunc(func(c *config) {
 		c.Gradient = gradient
+	})
+}
+
+// ColorAbove colors points whose value is strictly above threshold (value >
+// threshold) with the given color, across all series. It takes precedence over
+// SeriesColorGradient and SeriesColors; other points keep their normal color.
+func ColorAbove(color AnsiColor, threshold float64) Option {
+	return optionFunc(func(c *config) {
+		c.AboveThreshold = &threshold
+		c.AboveColor = color
+	})
+}
+
+// ColorBelow colors points whose value is strictly below threshold (value <
+// threshold) with the given color, across all series. It takes precedence over
+// SeriesColorGradient and SeriesColors; if a point also matches ColorAbove,
+// ColorAbove wins.
+func ColorBelow(color AnsiColor, threshold float64) Option {
+	return optionFunc(func(c *config) {
+		c.BelowThreshold = &threshold
+		c.BelowColor = color
 	})
 }
 

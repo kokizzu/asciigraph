@@ -221,6 +221,52 @@ Running this example would render the following graph:
 
 <img src=".github/assets/gradient.png" alt="gradient graph" width="350" />
 
+### Threshold coloring
+
+`ColorAbove` and `ColorBelow` highlight points that breach a threshold —
+useful for flagging alerts, like a CPU usage spike or a disk space warning —
+without recoloring the whole series. `ColorAbove` colors points strictly above
+its threshold (value > threshold) and `ColorBelow` strictly below (value <
+threshold). Points in between keep their normal color — the series color, or
+the gradient color when `SeriesColorGradient` is set. These take precedence over
+`SeriesColorGradient` and `SeriesColors`; when both thresholds match the same
+point, `ColorAbove` wins.
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/guptarohit/asciigraph"
+)
+
+func main() {
+	data := []float64{42, 48, 55, 81, 85, 91, 87, 34, 12, 17, 10, 18, 55, 50}
+	graph := asciigraph.Plot(data,
+		asciigraph.Height(10),
+		asciigraph.Width(25),
+		asciigraph.LowerBound(0),
+		asciigraph.UpperBound(100),
+		asciigraph.Caption("CPU usage % (red: critical, green: idle)"),
+		asciigraph.ColorAbove(asciigraph.Red, 80),
+		asciigraph.ColorBelow(asciigraph.Green, 25),
+	)
+	fmt.Println(graph)
+}
+```
+
+Running this example would render the following graph — the spike above 80% in
+red and the dip below 25% in green:
+
+<img src=".github/assets/threshold.png" alt="threshold colored graph" width="450" />
+
+On the CLI, the same thresholds are available via the `-ca` and `-cb` flags,
+each taking a `color,value` pair:
+
+```bash
+seq 1 100 | asciigraph -h 10 -ca red,80 -cb green,25
+```
+
 ### Legends for colored graphs
 
 The graph can include legends for each series, making it easier to interpret.
@@ -288,6 +334,10 @@ Options:
     	data points buffer when realtime graph enabled, default equal to `width`
   -c caption
     	caption for the graph
+  -ca above
+    	color points above a threshold: "color,value" (e.g. "red,4")
+  -cb below
+    	color points below a threshold: "color,value" (e.g. "green,2")
   -cc caption color
     	caption color of the plot
   -d delimiter
