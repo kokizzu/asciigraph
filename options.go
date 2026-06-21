@@ -182,8 +182,9 @@ func SeriesColors(ac ...AnsiColor) Option {
 // SeriesColorGradient colors each plotted point by its value along the given
 // stops (lowest value uses the first stop, highest the last), producing a
 // heatmap-style gradient instead of a single solid color. It applies to all
-// series and takes precedence over SeriesColors. Passing no stops disables it.
-// Use the built-in HeatmapSpectrum for a ready-made cool-to-warm palette.
+// series and takes precedence over SeriesColors for the plotted points; legend
+// boxes are left uncolored while a gradient is active. Passing no stops disables
+// it. Use the built-in HeatmapSpectrum for a ready-made cool-to-warm palette.
 func SeriesColorGradient(stops ...AnsiColor) Option {
 	gradient := append([]AnsiColor(nil), stops...)
 	return optionFunc(func(c *config) {

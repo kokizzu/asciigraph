@@ -956,3 +956,19 @@ func TestColorConversion(t *testing.T) {
 		t.Errorf("gradientColor(NaN) = %d, want Blue", got)
 	}
 }
+
+func TestLegendUncoloredUnderGradient(t *testing.T) {
+	out := PlotMany([][]float64{{1, 2, 3}},
+		SeriesColors(Red),
+		SeriesColorGradient(Blue, Red),
+		SeriesLegends("A"),
+	)
+	// A gradient overrides per-series colors, so the legend box must be default,
+	// not the unused SeriesColors red.
+	if strings.Contains(out, Red.String()+"■") {
+		t.Errorf("legend box colored with SeriesColors despite active gradient:\n%q", out)
+	}
+	if !strings.Contains(out, Default.String()+"■") {
+		t.Errorf("expected a default-colored legend box:\n%q", out)
+	}
+}
