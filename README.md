@@ -217,6 +217,10 @@ func main() {
 }
 ```
 
+Running this example would render the following graph:
+
+<img src=".github/assets/gradient.png" alt="gradient graph" width="350" />
+
 ### Legends for colored graphs
 
 The graph can include legends for each series, making it easier to interpret.
