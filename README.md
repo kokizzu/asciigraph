@@ -192,6 +192,35 @@ Running this example would render the following graph:
 
 ![colored_graph_image][]
 
+### Gradient (heatmap) coloring
+
+Instead of a solid color per series, `SeriesColorGradient` colors each point by
+its value along a palette — warm tones for high values, cool tones for low ones.
+The built-in `HeatmapSpectrum` provides a ready-made cool-to-warm palette, or you
+can pass your own color stops (lowest value first).
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/guptarohit/asciigraph"
+)
+
+func main() {
+	data := []float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1}
+	graph := asciigraph.Plot(data,
+		asciigraph.Height(10),
+		asciigraph.SeriesColorGradient(asciigraph.HeatmapSpectrum...),
+	)
+	fmt.Println(graph)
+}
+```
+
+Running this example would render the following graph:
+
+<img src=".github/assets/gradient.png" alt="gradient graph" width="350" />
+
 ### Legends for colored graphs
 
 The graph can include legends for each series, making it easier to interpret.
@@ -265,6 +294,8 @@ Options:
     	data delimiter for splitting data points in the input stream (default ",")
   -f fps
     	set fps to control how frequently graph to be rendered when realtime graph enabled (default 24)
+  -g gradient
+    	gradient palette coloring points by value: "spectrum" for the built-in heatmap, or comma-separated color stops low to high (e.g. "blue,cyan,green")
   -h height
     	height in text rows, 0 for auto-scaling
   -lb lower bound

@@ -882,3 +882,93 @@ func TestClearLines(t *testing.T) {
 		})
 	}
 }
+
+func TestGradientColor(t *testing.T) {
+	stops := []AnsiColor{10, 20, 30}
+	cases := []struct {
+		stops       []AnsiColor
+		v, min, max float64
+		want        AnsiColor
+	}{
+		{nil, 5, 0, 10, Default},              // no stops
+		{[]AnsiColor{Red}, 5, 0, 10, Red},     // single stop
+		{stops, 5, 5, 5, 10},                  // max <= min -> first stop
+		{stops, 0, 0, 10, 10},                 // low end
+		{stops, 10, 0, 10, 30},                // high end
+		{stops, 5, 0, 10, 20},                 // midpoint -> middle stop
+		{stops, -5, 0, 10, 10},                // clamp below
+		{stops, 15, 0, 10, 30},                // clamp above
+		{[]AnsiColor{Blue, Red}, 1, 0, 2, 90}, // midpoint blends in RGB space
+	}
+
+	for i, c := range cases {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			if got := gradientColor(c.stops, c.v, c.min, c.max); got != c.want {
+				t.Errorf("gradientColor(%v, %v, %v, %v) = %d, want %d", c.stops, c.v, c.min, c.max, got, c.want)
+			}
+		})
+	}
+}
+
+func TestSeriesColorGradient(t *testing.T) {
+	actual := PlotMany([][]float64{{1, 2, 3}}, SeriesColorGradient(Blue, Red))
+	// Top is the last stop (red), bottom the first (blue), and the midpoint is
+	// blended between them in RGB space rather than snapping to a stop.
+	expected := " 3.00 ┤ \x1b[91m╭\x1b[0m\n 2.00 ┤\x1b[38;5;90m╭╯\x1b[0m\n 1.00 ┼\x1b[94m╯\x1b[0m"
+	if actual != expected {
+		t.Errorf("expected:\n%q\n\ngot:\n%q", expected, actual)
+	}
+}
+
+func TestColorConversion(t *testing.T) {
+	// Black is a dummy index (188) that must normalize to true black,
+	// matching AnsiColor.String, otherwise gradients through black are wrong.
+	if r, g, b := ansiToRGB(Black); r != 0 || g != 0 || b != 0 {
+		t.Errorf("ansiToRGB(Black) = (%d,%d,%d), want (0,0,0)", r, g, b)
+	}
+	// A bright gray must not overflow the AnsiColor byte (which would wrap to
+	// Default and reset formatting).
+	if got := rgbToAnsi256(248, 248, 248); got == Default {
+		t.Errorf("rgbToAnsi256(248,248,248) overflowed to Default")
+	}
+	// The gray ramp rounds to the nearest step: 17 -> 233 (gray 18), not 232.
+	if got := rgbToAnsi256(17, 17, 17); got != 233 {
+		t.Errorf("rgbToAnsi256(17,17,17) = %d, want 233", got)
+	}
+	// Grays brighter than the ramp pick the nearer of gray 238 (255) or white
+	// (231): 244 is closer to gray 238, 250 is closer to white.
+	if got := rgbToAnsi256(244, 244, 244); got != 255 {
+		t.Errorf("rgbToAnsi256(244,244,244) = %d, want 255", got)
+	}
+	if got := rgbToAnsi256(250, 250, 250); got != 231 {
+		t.Errorf("rgbToAnsi256(250,250,250) = %d, want 231", got)
+	}
+	// A non-gray blend must never return the Black sentinel (188), which String
+	// would render as black instead of the intended light gray.
+	if got := rgbToAnsi256(214, 215, 215); got == Black {
+		t.Errorf("rgbToAnsi256(214,215,215) returned the Black sentinel")
+	}
+	if got := gradientColor([]AnsiColor{152, 224}, 49, 0, 100); got == Black {
+		t.Errorf("gradientColor blend returned the Black sentinel")
+	}
+	// A NaN value must not panic; it falls back to the first stop.
+	if got := gradientColor([]AnsiColor{Blue, Red}, math.NaN(), 0, 10); got != Blue {
+		t.Errorf("gradientColor(NaN) = %d, want Blue", got)
+	}
+}
+
+func TestLegendUncoloredUnderGradient(t *testing.T) {
+	out := PlotMany([][]float64{{1, 2, 3}},
+		SeriesColors(Red),
+		SeriesColorGradient(Blue, Red),
+		SeriesLegends("A"),
+	)
+	// A gradient overrides per-series colors, so the legend box must be default,
+	// not the unused SeriesColors red.
+	if strings.Contains(out, Red.String()+"■") {
+		t.Errorf("legend box colored with SeriesColors despite active gradient:\n%q", out)
+	}
+	if !strings.Contains(out, Default.String()+"■") {
+		t.Errorf("expected a default-colored legend box:\n%q", out)
+	}
+}
