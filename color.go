@@ -309,7 +309,7 @@ var HeatmapSpectrum = []AnsiColor{
 // stop, highest → last), blending between the two surrounding stops in RGB space
 // so that even two stops produce a smooth gradient. A value landing exactly on a
 // stop returns that stop unchanged. It returns the first stop when there are no
-// usable bounds (min == max) and Default when stops is empty.
+// usable bounds (min >= max) and Default when stops is empty.
 func gradientColor(stops []AnsiColor, v, min, max float64) AnsiColor {
 	if len(stops) == 0 {
 		return Default
