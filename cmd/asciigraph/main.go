@@ -66,7 +66,7 @@ func main() {
 		}
 	})
 
-	flag.Func("g", "`gradient` palette coloring points by value: \"spectrum\" for the built-in heatmap, or comma-separated color stops (low to high)", func(str string) error {
+	flag.Func("g", "`gradient` palette coloring points by value: \"spectrum\" for the built-in heatmap, or comma-separated color stops low to high (e.g. \"blue,cyan,green\")", func(str string) error {
 		if strings.EqualFold(strings.TrimSpace(str), "spectrum") {
 			gradientColors = asciigraph.HeatmapSpectrum
 			return nil

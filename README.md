@@ -295,7 +295,7 @@ Options:
   -f fps
     	set fps to control how frequently graph to be rendered when realtime graph enabled (default 24)
   -g gradient
-    	gradient palette coloring points by value: "spectrum" for the built-in heatmap, or comma-separated color stops (low to high)
+    	gradient palette coloring points by value: "spectrum" for the built-in heatmap, or comma-separated color stops low to high (e.g. "blue,cyan,green")
   -h height
     	height in text rows, 0 for auto-scaling
   -lb lower bound
